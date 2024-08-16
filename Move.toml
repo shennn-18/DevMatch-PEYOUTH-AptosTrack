@@ -1,0 +1,17 @@
+[package]
+name = "decentralized_voting_system"
+version = "1.0.0"
+authors = []
+
+#'f108800f6a96e0790977ee819c7e8508251861302a1aaab14bbb464e8c726e7a'
+[addresses]
+dvs_address = 'f108800f6a96e0790977ee819c7e8508251861302a1aaab14bbb464e8c726e7a'
+
+[dev-addresses]
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
