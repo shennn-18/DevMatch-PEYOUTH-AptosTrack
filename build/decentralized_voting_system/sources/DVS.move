@@ -2,11 +2,13 @@ module dvs_address::DVS {
     use std::string::String;
     use aptos_std::table::{Self, Table};
     use std::signer;
+    use std::timestamp;
 
     // ERRORS
     const E_HOST_EXISTS: u64 = 1;
     const E_NOT_HOST: u64 = 2;
     const E_ALREADY_EXISTS: u64 = 3;
+    const E_VOTING_ALREADY_ACTIVE: u64 = 4;
 
     struct Host has key, store {
         deployer: address, // Store the deployer's address
@@ -67,5 +69,20 @@ module dvs_address::DVS {
 
         // Store the Candidate in the Host's candidates table
         table::upsert(&mut host.candidates, id, candidate);
+    }
+
+    // Function to start voting
+    public entry fun start_voting(account: &signer, duration: u64) acquires Host {
+        let deployer_address = signer::address_of(account);
+        let host = borrow_global_mut<Host>(deployer_address);
+        assert!(deployer_address == host.deployer, E_NOT_HOST);
+
+        // Check if voting is already active
+        assert!(!host.voting_active, E_VOTING_ALREADY_ACTIVE);
+
+        // Start Voting
+        let current_time = timestamp::now_seconds(); // Get current time in seconds
+        host.voting_active = true;
+        host.end_time = current_time + duration;
     }
 }
