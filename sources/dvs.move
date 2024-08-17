@@ -10,6 +10,8 @@ module dvs_address::DVS {
     const E_ALREADY_EXISTS: u64 = 3;
     const E_VOTING_ALREADY_ACTIVE: u64 = 4;
     const E_VOTING_NOT_ACTIVE: u64 = 5;
+    const E_ALREADY_VOTED: u64 = 6;
+    const E_INVALID_TAC: u64 = 7;
 
     struct Host has key, store {
         deployer: address, // Store the deployer's address
@@ -123,6 +125,27 @@ module dvs_address::DVS {
         }
     }
 
+    public entry fun vote(account: &signer, candidate_id: u64, tac: u64) acquires Host {
+        let deployer_address = signer::address_of(account);
+        let host = borrow_global_mut<Host>(deployer_address);
 
+        // Ensure voting is active
+        assert!(host.voting_active, E_VOTING_NOT_ACTIVE);
 
+        // Verify TAC within the vote function itself
+        assert!(table::contains<u64, bool>(&host.tac_list, tac), E_INVALID_TAC);
+
+        // Ensure the voter has not already voted
+        assert!(!exists<Voter>(deployer_address), E_ALREADY_VOTED);
+
+        // Ensure the candidate exists
+        let candidate = table::borrow_mut<u64, Candidate>(&mut host.candidates, candidate_id);
+
+        // Update the candidate's vote count
+        candidate.votes = candidate.votes + 1;
+
+        // Mark voter as having voted
+        let voter = Voter { has_voted: true, verified_tac: true };
+        move_to(account, voter);
+    }
 }
