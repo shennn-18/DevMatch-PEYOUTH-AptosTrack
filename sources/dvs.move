@@ -15,7 +15,7 @@ module dvs_address::DVS {
         deployer: address, // Store the deployer's address
         candidates: Table<u64, Candidate>,
         voting_active: bool,
-        tac: u64,
+        tac_list: Table<u64, bool>,
         end_time: u64,
     }
 
@@ -43,7 +43,7 @@ module dvs_address::DVS {
             deployer: deployer_address,
             candidates: table::new(),
             voting_active: false,
-            tac: 0,
+            tac_list: table::new(),
             end_time: 0
         };
 
@@ -100,5 +100,16 @@ module dvs_address::DVS {
         host.voting_active = false;
         host.end_time = timestamp::now_seconds(); // Set end time to current time
     }
+
+    // Set TAC for voting process, which will be used for TAC verification for voters
+    public entry fun set_tac(account: &signer, tac: u64) acquires Host {
+        let deployer_address = signer::address_of(account);
+        let host = borrow_global_mut<Host>(deployer_address);
+        assert!(deployer_address == host.deployer, E_NOT_HOST);
+
+        // Set the TAC
+        table::upsert(&mut host.tac_list, tac, true);
+    }
+
 
 }
