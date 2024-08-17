@@ -111,5 +111,18 @@ module dvs_address::DVS {
         table::upsert(&mut host.tac_list, tac, true);
     }
 
+    public fun verify_tac(account: &signer, tac: u64): bool acquires Host {
+        let deployer_address = signer::address_of(account);
+        let host = borrow_global<Host>(deployer_address);
+
+        // Ensure the TAC exists in the TAC list
+        if (table::contains<u64, bool>(&host.tac_list, tac)) {
+            true  // TAC is valid
+        } else {
+            false // TAC is invalid
+        }
+    }
+
+
 
 }
