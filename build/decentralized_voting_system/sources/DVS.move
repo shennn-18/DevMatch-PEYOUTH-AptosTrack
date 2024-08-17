@@ -9,6 +9,7 @@ module dvs_address::DVS {
     const E_NOT_HOST: u64 = 2;
     const E_ALREADY_EXISTS: u64 = 3;
     const E_VOTING_ALREADY_ACTIVE: u64 = 4;
+    const E_VOTING_NOT_ACTIVE: u64 = 5;
 
     struct Host has key, store {
         deployer: address, // Store the deployer's address
@@ -85,4 +86,19 @@ module dvs_address::DVS {
         host.voting_active = true;
         host.end_time = current_time + duration;
     }
+
+    // Function to end voting
+    public entry fun end_voting(account: &signer) acquires Host {
+        let deployer_address = signer::address_of(account);
+        let host = borrow_global_mut<Host>(deployer_address);
+        assert!(deployer_address == host.deployer, E_NOT_HOST);
+
+        // Check if voting is active
+        assert!(host.voting_active, E_VOTING_NOT_ACTIVE);
+
+        // End Voting
+        host.voting_active = false;
+        host.end_time = timestamp::now_seconds(); // Set end time to current time
+    }
+
 }
